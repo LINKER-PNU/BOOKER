@@ -154,4 +154,18 @@ D-->E
             - 특히 긴급상황일떄
         - `foreign_key_checks` 변수 off로 빠른 동작 가능
             - CASCADE도 무시되기 떄문에, 일관성을 맞춰준뒤 다시 on
-        
+
+    - MVCC
+        -Multi Version Concurrency Control
+        - lock을 사용하지 않는 일관된 읽기 제공
+        - Undo log를 이용해 구현 가능(InnoDB)
+            - INSERT/UPDATE 문이 실행 될때마다 Undo log에 변경 전 사항만 기록
+            - 이때 변경 내용은 bg thread에 의해 기록되기에, disk에 반영되었는지는 시점에 따라 다름
+                - 일반적으론 buffer pool과 동일한 상태.
+            - COMMIT이 되지 않은 상태에서 SELECT로 조회한다면?
+                - Isolation level에 따라 다름
+                    - `READ_UNCOMMITTED` : COMMIT 여부 관계없이 Buffer pool data를 반환
+                    - `READ_COMMITTED` 이상 : 변경되기 이전의 Undo log data를 반환
+                    - 하나의 record에 대해 다수의 version이 유지되고,
+                    - 상황/필요에 따라 어떤 data를 보여주는지 달라짐 => MVCC!
+                    - Undo log 필요 공간이 늘어남.
