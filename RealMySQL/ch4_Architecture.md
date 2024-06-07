@@ -169,3 +169,16 @@ D-->E
                     - 하나의 record에 대해 다수의 version이 유지되고,
                     - 상황/필요에 따라 어떤 data를 보여주는지 달라짐 => MVCC!
                     - Undo log 필요 공간이 늘어남.
+    - Non Locking Consistent Read
+        - 변경 transaction이 타 사용자의 SELECT 작업을 방해하지 않음.
+        - 일관된 읽기를 위해 Undo log 지속 유지 필요
+        - Transaction이 장시간 이어질 경우 서버가 느려지거나 문제가 발생할 수도
+
+    - 자동 Deadlock 감지
+        - Deadlock 체크를 위해 잠금목록을 wait for list 형태로 관리(InnoDB Storage Engine)
+        - 주기적으로 검사 후, 데드락 transaction 중 하나를 강제 종료
+            - 종료 기준은 Undo log의 양이 적은 쪽
+        - MySQL Engine이 lock한 table은 `innodb_table_locks` 활성화로 deadlock 감지
+        - Deadlock 감지 thread는 잠금목록에 새로운 잠금을 걸고 검사를 시행하기에...
+            - 동시 처리 thread가 매우 많거나 각 transaction이 가진 잠금의 개수가 많아지면 성능이 나빠짐
+        - `innodb_deadlock_detect` off로 비활성화 가능
